@@ -140,6 +140,32 @@ class Bomb:
         self.rct.move_ip(self.vx, self.vy)
         screen.blit(self.img, self.rct)
 
+class Explosion:
+    """
+    撃墜時の演出
+    """
+    def __init__(self,bomb: Bomb):
+        self.img0 = pg.image.load("fig/explosion.gif")
+        self.img1 = pg.transform.flip(self.img0, True, True)
+        self.imgs = [self.img0,self.img1]
+        self.img = self.imgs[0]
+        self.center = bomb.rct.center
+        self.life = 300
+        self.c_rate = 150
+
+    def update(self,screen:pg.surface):
+        self.life -= 1
+        self.c_rate -=1
+        if self.c_rate > 75:
+            self.img = self.imgs[0]
+        else:
+            self.img = self.imgs[1]
+        if self.c_rate < 0:
+            self.c_rate = 20
+        self.rct = self.img.get_rect() 
+        self.rct.center = self.center
+        screen.blit(self.img, self.rct)
+        
 class Score:
     """
     撃墜した爆弾の数を表示する
@@ -165,6 +191,7 @@ def main():
     bombs = [Bomb((255, 0, 0), 10) for i in range(NUM_OF_BOMBS)]
     beams = []
     clock = pg.time.Clock()
+    explosion = []
     score = Score()
     tmr = 0
     while True:
@@ -193,6 +220,7 @@ def main():
                 if bombs[i]:
                     if beams[j]:
                         if bombs[i].rct.colliderect(beams[j].rct):
+                            explosion.append(Explosion(bombs[i]))
                             bombs[i] = None
                             beams[j] = None
                             score.score += 1
@@ -201,10 +229,14 @@ def main():
         bombs = [bomb for bomb in bombs if bomb]
         beams = [beam for beam in beams if beam]
         for i in range(len(beams)):
-
             if check_bound(beams[i].rct) != (True, True):
                 beams[i] = None                
         beams = [beam for beam in beams if beam]
+
+        for i in range(len(explosion)):
+            if explosion[i].life < 0:
+                explosion[i] = None
+        explosion = [explo for explo in explosion if explo]
 
         key_lst = pg.key.get_pressed()
         bird.update(key_lst, screen)
@@ -214,6 +246,9 @@ def main():
         for bomb in bombs:
             if bomb:
                 bomb.update(screen)
+        for explo in explosion:
+            if explo:
+                explo.update(screen)
         score.update(screen)
         pg.display.update()
         tmr += 1
