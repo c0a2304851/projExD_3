@@ -158,18 +158,25 @@ def main():
                 beam = Beam(bird)            
         screen.blit(bg_img, [0, 0])
         
-        if bird.rct.colliderect(bomb.rct):
-            # ゲームオーバー時に，こうかとん画像を切り替え，1秒間表示させる
-            bird.change_img(8, screen)
-            pg.display.update()
-            time.sleep(1)
-            return
+        if bomb:
+            if bird.rct.colliderect(bomb.rct):
+                # ゲームオーバー時に，こうかとん画像を切り替え，1秒間表示させる
+                bird.change_img(8, screen)
+                pg.display.update()
+                time.sleep(1)
+                return
+        
+        if bomb:
+            if beam:
+                if bomb.rct.colliderect(beam.rct):
+                    bomb = None
 
         key_lst = pg.key.get_pressed()
         bird.update(key_lst, screen)
         if beam:
-            beam.update(screen)   
-        bomb.update(screen)
+            beam.update(screen)
+        if bomb:
+            bomb.update(screen)
         pg.display.update()
         tmr += 1
         clock.tick(50)
@@ -180,3 +187,4 @@ if __name__ == "__main__":
     main()
     pg.quit()
     sys.exit()
+
