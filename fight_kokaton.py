@@ -7,6 +7,7 @@ import pygame as pg
 
 WIDTH = 1100  # ゲームウィンドウの幅
 HEIGHT = 650  # ゲームウィンドウの高さ
+NUM_OF_BOMBS = 5
 os.chdir(os.path.dirname(os.path.abspath(__file__)))
 
 
@@ -145,7 +146,8 @@ def main():
     screen = pg.display.set_mode((WIDTH, HEIGHT))    
     bg_img = pg.image.load("fig/pg_bg.jpg")
     bird = Bird((300, 200))
-    bomb = Bomb((255, 0, 0), 10)
+    bombs = [Bomb((255, 0, 0), 10) for i in range(NUM_OF_BOMBS)]
+    #bomb = Bomb((255, 0, 0), 10)
     beam = None
     clock = pg.time.Clock()
     tmr = 0
@@ -158,27 +160,31 @@ def main():
                 beam = Beam(bird)      
         screen.blit(bg_img, [0, 0])
         
-        if bomb:
-            if bird.rct.colliderect(bomb.rct):
-                # ゲームオーバー時に，こうかとん画像を切り替え，1秒間表示させる
-                bird.change_img(8, screen)
-                pg.display.update()
-                time.sleep(1)
-                return
+        for bomb in bombs:
+            if bomb:
+                if bird.rct.colliderect(bomb.rct):
+                    # ゲームオーバー時に，こうかとん画像を切り替え，1秒間表示させる
+                    bird.change_img(8, screen)
+                    pg.display.update()
+                    time.sleep(1)
+                    return
         
-        if bomb:
-            if beam:
-                if bomb.rct.colliderect(beam.rct):
-                    bomb = None
-                    beam = None
-                    bird.change_img(6,screen)
+        for i in range(len(bombs)):
+            if bombs[i]:
+                if beam:
+                    if bombs[i].rct.colliderect(beam.rct):
+                        bombs[i] = None
+                        beam = None
+                        bird.change_img(6,screen)
+        bombs = [bomb for bomb in bombs if bomb]
 
         key_lst = pg.key.get_pressed()
         bird.update(key_lst, screen)
         if beam:
             beam.update(screen)
-        if bomb:
-            bomb.update(screen)
+        for bomb in bombs:
+            if bomb:
+                bomb.update(screen)
         pg.display.update()
         tmr += 1
         clock.tick(50)
